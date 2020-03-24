@@ -1,0 +1,353 @@
+## 一、开始启程—你的第一行代码
+
+### 分析app目录结构
+
+选择 Proejct,即看到真实的目录结构.详细分析app目录文件结构
+
+![app目录结构](https://img9.doubanio.com/view/photo/m/_-uu8B0VM0thnZy7tbfAQw/160082038/x2587019494.jpg)
+
+
+- build
+
+  主要包含编译时自动生成的文件
+
+- libs
+
+  用于第三方jar包，其会被自动添加到构建路径中
+
+- src/main/java
+
+  代码文件
+
+  ```java
+  // ChatActivity继承自AppCompatActivity(AppCompatActivity是Activity的子类)
+  public class ChatActivity extends AppCompatActivity implements HasSupportFragmentInjector{
+       @Override
+      // onCreate()方法, 是一个活动被创建时必定要执行的方法
+      protected void onCreate(Bundle savedInstanceState) {
+          AndroidInjection.inject(ChatActivity.this);
+          super.onCreate(savedInstanceState);
+          // 引入res文件下的layout布局文件
+          setContentView(R.layout.activity_main);
+          setupActionBar();
+          onCreateFinish();
+    }
+  }
+  ```
+
+- src/main/res
+
+  - drawable。所有以drawable开头的文件夹用来存放图片。
+
+  -  mipmap。所有mipmap开头的文件夹用来存放应用图标。 
+
+  - layout。用来存放布局文件
+
+  - values。所有已values开头的文件夹用来存放字符串、样式、颜色等配置。 
+
+    ```xml
+    <string name="app_name">HelloWorld</string>
+    ```
+    引用该字符串有两种方式：
+    
+    > 代码中使用R.string.helloworld。
+    > XML中使用@string/hello_world。
+
+
+- AndroidManifest.xml 
+
+  整个项目的配置文件，用于定义四大组件和添加静态权限声明。 
+  
+  Android系统四大组件分别是活动(Activity)、服务(Service)、广播接收器(Broadcast Receiver)、内容提供器(Content Provider)。
+  
+  ```xml
+          <activity
+              android:name=".ChatActivity"
+              android:label="@string/app_name"
+              android:screenOrientation="portrait"
+              android:theme="@style/AppTheme.NoActionBar"
+              android:windowSoftInputMode="adjustResize">
+              <intent-filter>
+                  <action android:name="android.intent.action.MAIN" />
+                  <category android:name="android.intent.category.LAUNCHER" />
+              </intent-filter>
+          </activity>
+  ```
+
+
+  其中**intent-fifilter**里的两行代码表示**ChatActivity**是这个项目的主活动，即应用程序的入口。 
+
+### 详解build.gradle文件
+
+项目中有两个build.gradle文件，一个是在最外层gradle目录下的，一个是在app目录下的。
+
+- 最外层目录下的build.gradle文件(部分代码)
+
+  通常情况下你并不需要修改这个文件中的内容，除非你想添加一些全局的项目构建配置。
+
+```java
+// 以下两处repositories声明jcenter(), 为了方便引用jcenter上的开源项目
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        // 下行代码声明gradle：3.2.1插件,因为Gradle并不是专门为构建Android项目而开发的，Java、C++等很多种项目都可以使用Gradle来构建。因此如果我们要想使用它来构建Android项目，则需要声明gradle插件。
+        classpath 'com.android.tools.build:gradle:3.2.1'
+    }
+}
+
+allprojects {
+    repositories {
+        jcenter()
+    }
+}
+```
+
+- app目录下的build.gradle文件(部分代码)
+
+```java
+//应用一个插件.application表示这是一个应用程序模块;.1ibrary表示这是一个库模块。
+//应用程序模块和库模块的最大区别在于，一个是可以直接运行的，一个只能作为代码库依附于别的应用程序模块来运行。
+apply plugin: 'com.android.application'
+
+android {
+    // 指定项目编译的Android-sdk版本; Android具有向下兼容性
+    compileSdkVersion 27
+    // 指定项目构建工具的版本
+    buildToolsVersion '28.0.3'
+    defaultConfig {
+        multiDexEnabled true
+        // 指定项目包名
+        applicationId "com.iflytek.aiui.demo.chat"
+        // 最低兼容版本
+        minSdkVersion 19
+        // 目标版本
+        targetSdkVersion 26
+        versionCode 36
+        versionName "1.5.4"
+    }
+    // 指定生成安装文件的相关配置
+    buildTypes {
+        release {
+            // 是否对项目代码混淆
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+// 指定当前项目所有依赖关系(本地依赖,库依赖,远程依赖)
+// 本地依赖可以对本地的Jar包或目录添加依赖关系，库依赖可以对项目中的库模块添加依赖关系，远程依赖则可以对jcenter库上的开源项目添加依赖关系。
+dependencies {
+    // 本地依赖,将libs目录下所有.jar后缀的文件都添加到项目的构建路径当中。
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    //support库依赖(远程依赖)
+    implementation 'com.android.support:multidex:1.0.3'
+
+    implementation "com.android.support:support-vector-drawable:$support_ver"
+    implementation "com.android.support:design:$support_ver"
+    implementation "com.android.support:appcompat-v7:$support_ver"
+    implementation "com.android.support:cardview-v7:$support_ver"
+    implementation "com.android.support:preference-v7:$support_ver"
+    implementation "com.android.support:preference-v14:$support_ver"
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    //Android Architecture Component依赖
+    implementation "android.arch.lifecycle:extensions:1.1.0"
+    annotationProcessor "android.arch.lifecycle:compiler:1.1.0"
+
+    testImplementation "android.arch.core:core-testing:1.1.0"
+    testImplementation 'org.json:json:20140107'
+    testImplementation 'org.mockito:mockito-core:2.23.4'
+    testImplementation 'junit:junit:4.12'
+}
+```
+
+### 使用Android的日志工具Log
+
+Android的日志工具类是Log(android.util.log)。 
+
+- Log.v()。打印最为琐碎的信息，对应级别为verbose，级别最低。 
+
+- Log.d()。打印调试信息，对应级别debug，比verbose高一级。 
+
+  ```java
+  // 两个参数(tag:类名,msg:信息)
+  Log.d("HelloWorldActivity", "onCreate execute")；
+  ```
+
+- Log.i()。打印重要信息，对应级别info，比debug高一级。 
+
+- Log.w()。打印警告信息，对应级别warn，比info高一级。 
+
+- Log.e()。打印错误信息，对应解绑error，比warn高一级。 
+
+## 二、先从看得到的入手—探究活动
+
+活动(Activity)是一种可以包含用户界面的组件
+
+- 右击com.example.activitytest包→New→Activity→Empty Activity，**新建活动(Activity)**
+
+> - [x] Generate Layout File表示会自动为FirstActivity创建一个对应的布局文件，
+>
+> - [x] Launcher Activity表示会自动将FirstActivity设置为当前项目的主活动，
+
+- **调用setContentView（）方法给当前的活动加载一个布局(layout)**
+
+```java
+setContentView(R.layout.first_layout);
+```
+
+> xml文件
+>
+> - @+id/id_name : 定义资源id, 并在R文件生成相应的资源id
+> - @id/id_name : 引用id对应资源
+
+- 一定在AndroidManifest.xml注册活动, AS自动完成注册
+
+```xml
+  <activity android:name=".活动名" android:label="标题名(否则显示全局定义的标题名)">注册
+	<intent-filter>设为主活动
+```
+
+### 活动中使用Toast
+
+Toast是底部显示提醒消息方式
+
+toast按钮触发代码实现
+
+```java
+// findViewById()获取布局文件定义的元素,得到实例button1
+ButtButton button1 = (Button)findViewById(R.id.button_1);
+// 调用setOnClickListener()注册监听器
+button1.setOnClickLinstenter(new View.OnClickListenter(){
+    @Override
+    public void onClick(View v){
+        // makeText()参数(context,显示文本,显示时长LENGTH_SHORT/LONG内置常量)
+        Toast.makeText(FirstActivity.this, "You clicked button1", Toast.LENGTH_SHORT).show();
+    }
+});
+```
+
+### 活动中使用Menu
+
+首先在res目录下新建一个menu文件夹,创建main.xml文件, 创建菜单项
+
+```xml
+<item
+      android:id="@+id/add_item"
+      android:title="Add"/>
+```
+
+Activity中重写onCreateOptionsMen()方法
+
+> 快捷键 CTRL+O
+
+```java
+// 定义菜单
+public boolean onCreateOptionsMenu(Menu menu) {
+    // 获得MenuInflater()对象,inflate()方法创建菜单
+    getMenuInflater().inflate(R.menu.main,menu);
+    return true;
+}
+```
+
+定义菜单响应事件
+
+```java
+// 定义菜单响应
+public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    // 判断点击菜单项
+    switch(item.getItemId()) {
+        case R.id.add_item:
+            Toast.makeText(this,"click add",Toast.LENGTH_SHORT).show();
+            break;
+        ......
+```
+
+### 销毁活动
+
+- back返回即销毁
+- finish()方法销毁(即返回按钮), 直接在监听器修改代码
+
+### Intent启动Activity
+
+实现各组件的交互, 指明当前组件想要执行的动作, 还在不同组件传递数据. 一般可用于**启动活动,启动服务,发送广播**
+
+Intent分为显式和隐式
+
+- 显式Intent: 构造函数Intent意图明显,指定上下文和目标活动
+
+```java
+## FirstActivity.java
+ButtButton button1 = (Button)findViewById(R.id.button_1);
+//调用setOnClickListener()注册监听器
+button1.setOnClickLinstenter(new View.OnClickListenter(){
+    @Override
+    public void onClick(View v){
+        // 构造intent实例, Intent(context提供上下文,class启动的目标活动)
+        Intent intent = new Intent(FirstActivity.this,SecondActivity.class);
+        startActivity(intent);
+    }
+});
+```
+
+- 隐式Intent: 构造函数Intent指定action和category, 系统完全匹配action和category, 才启动目标活动
+
+```xml
+## AndroidManifest.xml定义action和category
+            <intent-filter>
+                <action android:name="aom.example.activitytest.ACTION_START"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+```
+
+```java
+## FirstActivity.java调用目标活动
+button1.setOnClickLinstenter(new View.OnClickListenter(){
+    @Override
+    public void onClick(View v){
+        // 构造intent实例, Intent("目标action");目标category若为默认值,则无需指定
+        Intent intent = new Intent("com.example.activitytest.ACTION_START");
+        // intent需指定唯一的action,但是可以多个category
+        intent.addCategory("com.example.activitytest.MY_CATEGORY")
+        startActivity(intent);
+    }
+});
+```
+
+### 隐式Intent启动系统应用活动
+
+- 调用系统浏览器
+
+```java
+## FirstActivity.java
+    button1.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                // 系统内置action,打开默认浏览器
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse("https:/wwww.baidu.com"));
+                startActivity(intent);
+            }
+        });
+```
+- 打开拨号界面
+
+```java
+## FirstActivity.java
+    button1.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                // 系统内置action,打开拨号界面
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:10010"));
+                startActivity(intent);
+            }
+        });
+```
+
+### 活动生命周期
+
+返回栈: Android使用任务(Task)来管理活动(Activity)，一个任务就是一组存放在栈里的活动的集合，这个栈也被称作返回栈（Back Stack）。*栈是一种后进先出的数据结构*
+
