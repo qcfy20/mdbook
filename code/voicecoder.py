@@ -1,6 +1,5 @@
 ## puthon 录音
 
-```python
 import wave
 from pyaudio import PyAudio,paInt16
 
@@ -38,5 +37,5 @@ def my_record():
 
 my_record()
 print('Over!') 
-```
+
 

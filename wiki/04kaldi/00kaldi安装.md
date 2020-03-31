@@ -19,8 +19,8 @@ sudo apt-get install libatlas3-base
 > - automake
 > - libtool
 > - atlas  根据系统自动选择最优的线性代码库的库
-> - wget 下载工具(好像也不需要)
-> - zlib 数据压缩工具(bzip都可以)
+> - wget 下载工具(系统自带)
+> - zlib 数据压缩工具
 
 2. 下载kaldi，终端输入(注意文件路径)
 
